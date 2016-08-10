@@ -2,11 +2,11 @@
 <html ng-app="hubway-app">
 
 <head>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlgqVGfxHXAIg7wGni6UAz2Tnkewdi-i8&callback=initMap" async
-		defer></script>
-	<!--<script src="data.js"></script>-->
-	<script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlgqVGfxHXAIg7wGni6UAz2Tnkewdi-i8&callback=initMap" async
+    defer></script>
+  <!--<script src="data.js"></script>-->
+  <script>
       var map;
       function initMap() {
       map = new google.maps.Map(document.getElementById('map'), {
@@ -16,28 +16,45 @@
        });
     }
     </script>
-	<style type="text/css">
-		body,
-		html {
-			width: 100%;
-			height: 100%;
-			overflow: hidden;
-		}
-		
-		#map {
-			width: 100%;
-			height: 80%;
-			margin: 0 auto;
-		}
-	</style>
+  <style type="text/css">
+    body,
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    #map {
+      width: 100%;
+      height: 80%;
+      margin: 0 auto;
+    }
+  </style>
 </head>
 
 <body>
-	<p>This will show all the hubway stations in Boston and Nearby areas.</p>
-	<div id="map"></div>
-	<script>
+  <p>This will show all the hubway stations in Boston and Nearby areas.</p>
+  <div id="map"></div>
+  <script>
       $(function(){
+      //var contentString = '<div id="content">'+'<h1>Current Status</h1>'+'</div>';
       var stations;
+      var station_status;
+      var infowindow;
+      var contentString;
+        $.getJSON('https://gbfs.thehubway.com/gbfs/en/station_status.json',function(data){
+            var station_status=data['data']['stations'];
+            station_status.forEach(function(cur,index,arr){
+            bikes_available=cur['num_bikes_available'];
+            docks_available=cur['num_docks_available'];
+            var contentString = '<div id="content">'+'<h3>Current Status</h3>'+
+            '<p>Bikes Available: '+bikes_available+'</p>'+'<p>Docks Available: '+docks_available+'</p>'+'</div>'; 
+            infowindow = new google.maps.InfoWindow({
+                content: contentString,
+                //map:map
+            });
+          });
+        });
         $.getJSON('https://gbfs.thehubway.com/gbfs/en/station_information.json', function(data) {
           var stations = data['data']['stations'];
           stations.forEach(function(cur, index, arr){
@@ -49,7 +66,12 @@
             map: map,
             title: cur["name"]
             });
-          });        
+            //function update(val){    
+              marker.addListener('click',function(){
+              infowindow.open(map,marker);
+            });
+          // }
+         });        
         });
       });
     </script>
