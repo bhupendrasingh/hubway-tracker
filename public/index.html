@@ -3,11 +3,10 @@
 
 <head>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlgqVGfxHXAIg7wGni6UAz2Tnkewdi-i8&callback=initMap" async
-    defer></script>
-  <!--<script src="data.js"></script>-->
-  <script>
-     function search_stations(){
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlgqVGfxHXAIg7wGni6UAz2Tnkewdi-i8&callback=initMap" async defer></script>
+ <!-- <script src="require.js"></script>-->
+  <!--<script src="main.js"></script>-->
+  <!--<script> 
         //  function initMap() {
         // var map = new google.maps.Map(document.getElementById('map'), {
         //   center: {lat: 42.3601, lng: -71.0589},
@@ -41,8 +40,7 @@
                               'Error: The Geolocation service failed.' :
                               'Error: Your browser doesn\'t support geolocation.');
       }
-     }
-    </script>
+    </script>-->
   <script>
       var map;
       function initMap() {
@@ -72,7 +70,7 @@
 <body>
   <p>This will show all the hubway stations in Boston and Nearby areas.</p>
   Stations near me (Radius 1 mile)<button onclick="search_stations()">Search</button>
-    <!--<input type="button" name="near_me" value="Search" onclick="search_stations()"> </input>-->
+  <!--<input type="button" name="near_me" value="Search" onclick="search_stations()"> </input>-->
   <div id="map"></div>
   <script>
    
@@ -82,22 +80,28 @@
       var station_status;
       var infowindow;
       var contentString;
+      function generate_status(id,map,marker){
         $.getJSON('https://gbfs.thehubway.com/gbfs/en/station_status.json',function(data){
             var station_status=data['data']['stations'];
             station_status.forEach(function(cur,index,arr){
-            bikes_available=cur['num_bikes_available'];
-            docks_available=cur['num_docks_available'];
-            var contentString = '<div id="content">'+'<h3>Current Status</h3>'+
-            '<p>Bikes Available: '+bikes_available+'</p>'+'<p>Docks Available: '+docks_available+'</p>'+'</div>'; 
-            infowindow = new google.maps.InfoWindow({
-                content: contentString,
-                //map:map
+              if (cur['station_id'] == id){
+                bikes_available=cur['num_bikes_available'];
+                docks_available=cur['num_docks_available'];
+                var contentString = '<div id="content">'+'<h3>Current Status</h3>'+
+                '<p>Bikes Available: '+bikes_available+'</p>'+'<p>Docks Available: '+docks_available+'</p>'+'</div>'; 
+              }
+             infowindow = new google.maps.InfoWindow({
+             content: contentString
             });
+            infowindow.open(map,marker);
           });
         });
+      }
+
         $.getJSON('https://gbfs.thehubway.com/gbfs/en/station_information.json', function(data) {
           var stations = data['data']['stations'];
           stations.forEach(function(cur, index, arr){
+          var id=cur['station_id']
           var marker = new google.maps.Marker({
             position: {
               lat: cur['lat'],
@@ -105,13 +109,12 @@
             },
             map: map,
             title: cur["name"]
-            });
-            //function update(val){    
+            });    
               marker.addListener('click',function(){
-              infowindow.open(map,marker);
+              generate_status(id,map,marker)
+              //infowindow.open(map,marker);
             });
-          // }
-         });        
+          });        
         });
       });
     </script>
