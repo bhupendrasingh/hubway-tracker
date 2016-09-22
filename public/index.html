@@ -77,24 +77,26 @@
       $(function(){
       //var contentString = '<div id="content">'+'<h1>Current Status</h1>'+'</div>';
       var stations;
-      var station_status;
-      var infowindow;
-      var contentString;
-      function generate_status(id,map,marker){
+      var prev_infowindow =false; 
+      function generate_status(id1,map1,marker1){
+        var station_status;
+        var infowindow;
+        var contentString;
         $.getJSON('https://gbfs.thehubway.com/gbfs/en/station_status.json',function(data){
             var station_status=data['data']['stations'];
-            station_status.forEach(function(cur,index,arr){
-              if (cur['station_id'] == id){
-                bikes_available=cur['num_bikes_available'];
-                docks_available=cur['num_docks_available'];
-                var contentString = '<div id="content">'+'<h3>Current Status</h3>'+
-                '<p>Bikes Available: '+bikes_available+'</p>'+'<p>Docks Available: '+docks_available+'</p>'+'</div>'; 
-              }
-             infowindow = new google.maps.InfoWindow({
-             content: contentString
+            var newArray = station_status.filter(function(st){
+                if (st['station_id'] == id1){
+                  bikes_available=st['num_bikes_available'];
+                  docks_available=st['num_docks_available'];
+                }
             });
-            infowindow.open(map,marker);
-          });
+            var contentString = '<div id="content">'+'<h3>Current Status</h3>'+
+            '<p>Bikes Available: '+bikes_available+'</p>'+'<p>Docks Available: '+docks_available+'</p>'+'</div>'; 
+            infowindow = new google.maps.InfoWindow({
+            content: contentString
+            });
+            prev_infowindow = infowindow;
+           infowindow.open(map1,marker1);
         });
       }
 
@@ -111,6 +113,9 @@
             title: cur["name"]
             });    
               marker.addListener('click',function(){
+              if( prev_infowindow ) {
+                prev_infowindow.close();
+              }
               generate_status(id,map,marker)
               //infowindow.open(map,marker);
             });
